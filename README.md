@@ -33,7 +33,9 @@ needed models will be copied to the default gazebo models folder.
     
 # Launch Sim #
 
-```roslaunch turtlebot3_gazebo turtlebot3_house.launch```
+```
+roslaunch turtlebot3_gazebo turtlebot3_house.launch
+```
 
 
 
