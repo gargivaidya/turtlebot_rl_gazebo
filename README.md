@@ -33,8 +33,7 @@ needed models will be copied to the default gazebo models folder.
     
 # Launch Sim #
 
-``` sudo make install
-roslaunch turtlebot3_gazebo turtlebot3_house.launch```
+```roslaunch turtlebot3_gazebo turtlebot3_house.launch```
 
 
 
