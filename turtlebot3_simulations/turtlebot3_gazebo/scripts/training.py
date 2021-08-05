@@ -61,14 +61,7 @@ parser.add_argument('--max_episode_length', type=int, default=400, metavar='N',
 					help='max episode length (default: 3000)')
 args = parser.parse_args()
 
-def train():
-
-	if args.env_name == "ContinuousTurtleGym":
-		env =  ContinuousTurtleGym()
-	elif args.env_name == "Discrete4TurtleGym" :
-		env = Discrete4TurtleGym()
-	else :
-		env = Discrete15TurtleGym()
+def train(env):
 
 	agent = SAC(env.observation_space.shape[0], env.action_space, args)
 	memory = ReplayMemory(args.replay_size, args.seed)
@@ -144,8 +137,13 @@ def train():
 if __name__ == '__main__':
 	try:
 		rospy.init_node('train', anonymous=True)
-		env = ContinuousTurtleGym()
-		train()
+		if args.env_name == "ContinuousTurtleGym":
+			env =  ContinuousTurtleGym()
+		elif args.env_name == "Discrete4TurtleGym" :
+			env = Discrete4TurtleGym()
+		else :
+			env = Discrete15TurtleGym()
+		train(env)
 		rospy.spin()
 	except rospy.ROSInterruptException:
 		pass
