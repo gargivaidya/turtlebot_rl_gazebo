@@ -25,10 +25,10 @@ rosrun turtlebot3_gazebo training.py
 - This Gazebo plugin simulates a RealSense camera by publishing the 4 main RealSense streams: Depth, Infrared, Infrared2 and Color. It is associated to a
 RealSense model that is providade in ./models
 
-# Requirements #
+### Requirements #
     * Gazebo 8.0+
 
-# Build #
+### Build #
 
 1. Create a build folder under /src and make using CMAKE as follows:
 
@@ -39,7 +39,7 @@ RealSense model that is providade in ./models
     make
     ```
 
-# Install #
+### Install #
 
 The plugin binaries will be installed so that Gazebo finds them. Also the
 needed models will be copied to the default gazebo models folder.
