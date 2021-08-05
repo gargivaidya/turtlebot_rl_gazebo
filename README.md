@@ -1,8 +1,6 @@
 # Reinforcement Learning with Turtlebot in Gazebo
 # TurtleBot3 with Intel RealSense D435
 <img src="https://github.com/ROBOTIS-GIT/emanual/blob/master/assets/images/platform/turtlebot3/logo_turtlebot3.png" width="100">
-
-## ROBOTIS e-Manual for TurtleBot3
 - [ROBOTIS e-Manual for TurtleBot3](http://turtlebot3.robotis.com/)
 - To install the Realsense Plugin from source follow steps from https://github.com/intel/gazebo-realsense, or as given below
 
@@ -46,13 +44,11 @@ needed models will be copied to the default gazebo models folder.
 
     sudo make install
     
-# Launch Sim #
+# Launch Simulation with D435 #
 
 ```
 roslaunch turtlebot3_gazebo turtlebot3_house.launch
 ```
-
-
 
 ## Wiki for turtlebot3_simulations Packages
 - http://wiki.ros.org/turtlebot3_simulations (metapackage)
