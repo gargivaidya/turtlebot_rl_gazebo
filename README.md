@@ -26,8 +26,8 @@ rosrun turtlebot3_gazebo training.py
 ```
 python3 -m venv gymenv
 source gymenv/bin/activate
-pip3 install pyyaml rospkg numpy tensorboard 
-pip3 install <compatible pytorch version>
+pip3 install pyyaml rospkg numpy gym matplotlib tensorboard scikit-build cmake stable-baselines
+pip3 install <compatible version of torch https://pytorch.org/>
 ```
 ## Start training RL model
 ```
