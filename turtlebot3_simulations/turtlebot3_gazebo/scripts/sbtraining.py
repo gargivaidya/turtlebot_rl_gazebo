@@ -13,7 +13,7 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import CompressedImage, Image
 import numpy as np
-from tb3env import ContinuousTurtleGym, Discrete4TurtleGym, Discrete15TurtleGym
+from tb3env import ContinuousTurtleGym, DiscreteTurtleGym
 from std_srvs.srv import Empty
 from stable_baselines.sac.policies import MlpPolicy
 from stable_baselines import SAC
@@ -28,6 +28,8 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 parser = argparse.ArgumentParser(description='PyTorch Soft Actor-Critic Args')
 parser.add_argument('--env-name', default="Discrete4TurtleGym",
 					help='Turtlebot Gazebo Gym environment (default: Discrete4TurtleGym)')
+parser.add_argument('--n_actions', type=int, default=4, metavar='N',
+					help='number of discrete actions 4 or 15 (default: 4)')
 args = parser.parse_args()
 
 class CustomDQNPolicy(FeedForwardPolicy):
@@ -57,10 +59,8 @@ if __name__ == '__main__':
 		rospy.init_node('sbtrain', anonymous=True)
 		if args.env_name == "ContinuousTurtleGym":
 			env =  ContinuousTurtleGym()
-		elif args.env_name == "Discrete4TurtleGym" :
-			env = Discrete4TurtleGym()
-		else :
-			env = Discrete15TurtleGym()
+		elif args.env_name == "DiscreteTurtleGym" :
+			env = DiscreteTurtleGym(args.n_actions)
 		train(env)
 		rospy.spin()
 	except rospy.ROSInterruptException:
