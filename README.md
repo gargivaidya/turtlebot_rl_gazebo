@@ -22,6 +22,9 @@ rosrun turtlebot3_gazebo training.py
 ```
 # Reinforcement Learning with Custom RL Algorithm
 
+# Dependencies
+turtlebot3_descriptions 
+
 ## Setup Virtual Environment for RL
 ```
 python3 -m venv gymenv
@@ -40,9 +43,6 @@ rosrun turtlebot3_gazebo sbtraining.py
 ## RealSense Camera Gazebo Plugin
 - This Gazebo plugin simulates a RealSense camera by publishing the 4 main RealSense streams: Depth, Infrared, Infrared2 and Color. It is associated to a
 RealSense model that is providade in ./models
-
-### Requirements #
-    * Gazebo 8.0+
 
 ### Build #
 
