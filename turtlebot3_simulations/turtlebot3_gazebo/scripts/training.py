@@ -59,7 +59,7 @@ parser.add_argument('--cuda', type = int, default = 0, metavar = 'N',
                     help='run on CUDA (default: False)')
 parser.add_argument('--max_episode_length', type=int, default=400, metavar='N',
 					help='max episode length (default: 3000)')
-parser.add_argument('--n_actions', type=int, default=4, metavar='N',
+parser.add_argument('--n-actions', type=int, default=4, metavar='N',
 					help='number of discrete actions 4 or 15 (default: 4)')
 args = parser.parse_args()
 
