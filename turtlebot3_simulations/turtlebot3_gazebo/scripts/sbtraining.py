@@ -28,7 +28,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 parser = argparse.ArgumentParser(description='PyTorch Soft Actor-Critic Args')
 parser.add_argument('--env-name', default="Discrete4TurtleGym",
 					help='Turtlebot Gazebo Gym environment (default: Discrete4TurtleGym)')
-parser.add_argument('--n_actions', type=int, default=4, metavar='N',
+parser.add_argument('--n-actions', type=int, default=4, metavar='N',
 					help='number of discrete actions 4 or 15 (default: 4)')
 args = parser.parse_args()
 
