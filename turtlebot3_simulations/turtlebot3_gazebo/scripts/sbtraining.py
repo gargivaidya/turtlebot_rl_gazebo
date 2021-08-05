@@ -27,7 +27,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 parser = argparse.ArgumentParser(description='PyTorch Soft Actor-Critic Args')
 parser.add_argument('--env-name', default="Discrete4TurtleGym",
-					help='Dubin Gym environment (default: ContinuousDubinGym)')
+					help='Turtlebot Gazebo Gym environment (default: Discrete4TurtleGym)')
 args = parser.parse_args()
 
 class CustomDQNPolicy(FeedForwardPolicy):
@@ -36,34 +36,32 @@ class CustomDQNPolicy(FeedForwardPolicy):
 
 register_policy('CustomDQNPolicy', CustomDQNPolicy)
 
-def train() :
-
-	if args.env_name == "ContinuousTurtleGym":
-		env =  ContinuousTurtleGym()
-	elif args.env_name == "Discrete4TurtleGym" :
-		env = Discrete4TurtleGym()
-	else :
-		env = Discrete15TurtleGym()
+def train(env) :
 
 	# model = SAC(MlpPolicy, env, verbose=1, tensorboard_log="./dqn_turtle/")
 	# model.learn(total_timesteps=50000, log_interval=10)
 	# model.save("sac_turtle")    
 
 	model = DQN('CustomDQNPolicy', env, learning_rate=1e-3, 
-			buffer_size = 500000, exploration_fraction = 0.1, 
+			buffer_size = 50000, exploration_fraction = 0.1, 
 			exploration_final_eps = 0.05, exploration_initial_eps = 1.0,  
 			prioritized_replay=True, prioritized_replay_alpha = 0.3, 
 			prioritized_replay_beta0=0.4, prioritized_replay_beta_iters=None,
             prioritized_replay_eps=1e-6, verbose=1, 
 			tensorboard_log="./dqn_turtle/")
-	model.learn(total_timesteps=500000, log_interval=10)
+	model.learn(total_timesteps=50000, log_interval=10)
 	model.save("dqn_turtle_1")
 
 if __name__ == '__main__':
 	try:
 		rospy.init_node('sbtrain', anonymous=True)
-		env = ContinuousTurtleGym()
-		train()
+		if args.env_name == "ContinuousTurtleGym":
+			env =  ContinuousTurtleGym()
+		elif args.env_name == "Discrete4TurtleGym" :
+			env = Discrete4TurtleGym()
+		else :
+			env = Discrete15TurtleGym()
+		train(env)
 		rospy.spin()
 	except rospy.ROSInterruptException:
 		pass
