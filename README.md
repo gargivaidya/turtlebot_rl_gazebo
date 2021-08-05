@@ -10,15 +10,16 @@
 ```
 python3 -m venv gymenv
 source gymenv/bin/activate
+pip3 install --upgrade pip
 pip3 install pyyaml rospkg numpy tensorboard 
 pip3 install <compatible pytorch version>
 ```
 ## Start training RL model
 ```
-roslaunch turtlebot3_gazebo turtlebot3_house.launch
+roslaunch turtlebot3_gazebo turtlebot3_empty_world.launch
 
 source gymenv/bin/activate
-rosrun turtlebot3_gazebo training.py
+rosrun turtlebot3_gazebo sbtraining.py
 ```
 # Reinforcement Learning with Custom RL Algorithm
 
@@ -29,15 +30,16 @@ turtlebot3_descriptions
 ```
 python3 -m venv gymenv
 source gymenv/bin/activate
+pip3 install --upgrade pip
 pip3 install pyyaml rospkg numpy gym matplotlib tensorboard scikit-build cmake stable-baselines
 pip3 install <compatible version of torch https://pytorch.org/>
 ```
 ## Start training RL model
 ```
-roslaunch turtlebot3_gazebo turtlebot3_house.launch
+roslaunch turtlebot3_gazebo turtlebot3_empty_world.launch
 
 source gymenv/bin/activate
-rosrun turtlebot3_gazebo sbtraining.py
+rosrun turtlebot3_gazebo training.py
 ```
 
 ## RealSense Camera Gazebo Plugin
