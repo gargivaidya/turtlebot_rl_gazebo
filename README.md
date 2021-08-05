@@ -4,6 +4,8 @@
 - [ROBOTIS e-Manual for TurtleBot3](http://turtlebot3.robotis.com/)
 - To install the Realsense Plugin from source follow steps from https://github.com/intel/gazebo-realsense, or as given below
 
+# Reinforcement Learning with Stable Baselines
+
 ## Setup Virtual Environment for RL
 ```
 python3 -m venv gymenv
@@ -17,6 +19,22 @@ roslaunch turtlebot3_gazebo turtlebot3_house.launch
 
 source gymenv/bin/activate
 rosrun turtlebot3_gazebo training.py
+```
+# Reinforcement Learning with Custom RL Algorithm
+
+## Setup Virtual Environment for RL
+```
+python3 -m venv gymenv
+source gymenv/bin/activate
+pip3 install pyyaml rospkg numpy tensorboard 
+pip3 install <compatible pytorch version>
+```
+## Start training RL model
+```
+roslaunch turtlebot3_gazebo turtlebot3_house.launch
+
+source gymenv/bin/activate
+rosrun turtlebot3_gazebo sbtraining.py
 ```
 
 ## RealSense Camera Gazebo Plugin
@@ -44,7 +62,7 @@ needed models will be copied to the default gazebo models folder.
 
     sudo make install
     
-# Launch Simulation with D435 #
+### Launch Simulation with D435 #
 
 ```
 roslaunch turtlebot3_gazebo turtlebot3_house.launch
