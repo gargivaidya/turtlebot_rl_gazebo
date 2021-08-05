@@ -22,7 +22,7 @@ rosrun turtlebot3_gazebo training.py
 ```
 # Reinforcement Learning with Custom RL Algorithm
 
-# Dependencies
+#### Dependencies
 turtlebot3_descriptions 
 
 ## Setup Virtual Environment for RL
