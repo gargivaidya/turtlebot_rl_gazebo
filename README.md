@@ -1,10 +1,25 @@
 # Reinforcement Learning with Turtlebot in Gazebo
 # TurtleBot3 with Intel RealSense D435
-<img src="https://github.com/ROBOTIS-GIT/emanual/blob/master/assets/images/platform/turtlebot3/logo_turtlebot3.png" width="300">
+<img src="https://github.com/ROBOTIS-GIT/emanual/blob/master/assets/images/platform/turtlebot3/logo_turtlebot3.png" width="100">
 
 ## ROBOTIS e-Manual for TurtleBot3
 - [ROBOTIS e-Manual for TurtleBot3](http://turtlebot3.robotis.com/)
 - To install the Realsense Plugin from source follow steps from https://github.com/intel/gazebo-realsense, or as given below
+
+## Setup Virtual Environment for RL
+```
+python3 -m venv gymenv
+source gymenv/bin/activate
+pip3 install pyyaml rospkg numpy tensorboard 
+pip3 install <compatible pytorch version>
+```
+## Start training RL model
+```
+roslaunch turtlebot3_gazebo turtlebot3_house.launch
+
+source gymenv/bin/activate
+rosrun turtlebot3_gazebo training.py
+```
 
 ## RealSense Camera Gazebo Plugin
 - This Gazebo plugin simulates a RealSense camera by publishing the 4 main RealSense streams: Depth, Infrared, Infrared2 and Color. It is associated to a
