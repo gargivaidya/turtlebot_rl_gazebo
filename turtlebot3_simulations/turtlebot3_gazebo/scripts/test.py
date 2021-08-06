@@ -6,7 +6,7 @@ from sensor_msgs.msg import CompressedImage, Image, LaserScan
 import numpy as np
 from tf.transformations import euler_from_quaternion
 
-class ContinuousTurtleGym():
+class CallbackTest():
 	def __init__(self):	
 		
 		# self.sub1 = rospy.Subscriber("/odom", Odometry, self.pose_callback)
@@ -31,7 +31,7 @@ class ContinuousTurtleGym():
 if __name__ == '__main__':
 	try:
 		rospy.init_node('test', anonymous=True)
-		env = ContinuousTurtleGym()
+		env = CallbackTest()
 		rospy.spin()
 	except rospy.ROSInterruptException:
 		pass
