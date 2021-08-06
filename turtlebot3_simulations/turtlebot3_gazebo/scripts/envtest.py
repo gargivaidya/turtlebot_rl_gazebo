@@ -10,14 +10,7 @@ parser.add_argument('--env-name', default="ContinuousTurtleGym",
 					help='Dubin Gym environment (default: ContinuousDubinGym)')
 args = parser.parse_args()
 
-def test():
-	
-	if args.env_name == "ContinuousTurtleGym":
-		env =  ContinuousTurtleGym()
-	elif args.env_name == "Discrete4TurtleGym" :
-		env = Discrete4TurtleGym()
-	else :
-		env = Discrete15TurtleGym()
+def test(env):
 
 	print("Issues with Custom Environment : ", check_env(env))
 
@@ -38,8 +31,11 @@ def test():
 if __name__ == '__main__':
 	try:
 		rospy.init_node('test', anonymous=True)
-		env = ContinuousTurtleGym()
-		test()
+		if args.env_name == "ContinuousTurtleGym":
+			env =  ContinuousTurtleGym()
+		elif args.env_name == "DiscreteTurtleGym" :
+			env = DiscreteTurtleGym(args.n_actions)
+		test(env)
 		rospy.spin()
 	except rospy.ROSInterruptException:
 		env.reset_simulation_proxy()		
