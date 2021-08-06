@@ -197,7 +197,7 @@ class ContinuousTurtleGym(gym.Env):
 
 class DiscreteTurtleGym(gym.Env):
 	def __init__(self, n_actions = 4):
-		super(Discrete4TurtleGym,self).__init__()		
+		super(DiscreteTurtleGym,self).__init__()		
 		metadata = {'render.modes': ['console']}
 		print("Initialising Turtlebot 3 Discrete4 Gym Environment...")
 		self.action_space = spaces.Discrete(4) 
@@ -353,7 +353,7 @@ class DiscreteTurtleGym(gym.Env):
 		msg = Twist()
 		msg.linear.x = self.action[0]
 		msg.angular.z = self.action[1]
-		# print("Lin Vel : ", msg.linear.x , "\tAng Vel : ", msg.angular.z, end = '\r')
+		# print("Lin Vel : ", msg.linear.x , "\tAng Vel : ", msg.angular.z)
 		self.pub.publish(msg)
 		time.sleep(0.1)
 
