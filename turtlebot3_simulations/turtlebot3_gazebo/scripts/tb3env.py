@@ -540,7 +540,7 @@ class ContinuousTurtleObsGym(gym.Env):
 
 		done, reward = self.check_goal()
 
-		obs = [(self.target[0] - self.pose[0])/GRID, (self.target[1] - self.pose[1])/GRID, head_to_target - self.pose[2], self.sector_scan]
+		obs = [(self.target[0] - self.pose[0])/GRID, (self.target[1] - self.pose[1])/GRID, head_to_target - self.pose[2]]
 		obs = [round(x, 2) for x in obs]
 		return np.concatenate((np.array(obs), self.sector_scan)), reward, done, info  
 
