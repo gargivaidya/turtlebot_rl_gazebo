@@ -18,10 +18,11 @@ from std_srvs.srv import Empty
 MAX_STEER = 2.84
 MAX_SPEED = 0.22
 MIN_SPEED = 0.
-THRESHOLD = 0.1
-GRID = 3.
+THRESHOLD = 0.2
+GRID = 5.
 THETA0 = np.pi/4
-MAX_EP_LEN = 2000
+MAX_EP_LEN = 800
+OBS_THRESH = 0.15
 
 class ContinuousTurtleGym(gym.Env):
 	def __init__(self):
@@ -139,7 +140,7 @@ class ContinuousTurtleGym(gym.Env):
 	def check_goal(self):
 		done = False
 
-		if abs(self.pose[0] < GRID) or abs(self.pose[1] < GRID):
+		if (abs(self.pose[0]) < GRID) or (abs(self.pose[1]) < GRID):
 			if (abs(self.pose[0] - self.target[0]) < THRESHOLD and abs(self.pose[1] - self.target[1]) < THRESHOLD) :
 				done = True
 				reward = 10
@@ -323,7 +324,7 @@ class DiscreteTurtleGym(gym.Env):
 	def check_goal(self):
 		done = False
 
-		if abs(self.pose[0] < GRID) or abs(self.pose[1] < GRID):
+		if (abs(self.pose[0]) < GRID) or (abs(self.pose[1]) < GRID):
 			if (abs(self.pose[0] - self.target[0]) < THRESHOLD and abs(self.pose[1] - self.target[1]) < THRESHOLD) :
 				done = True
 				reward = 10
@@ -387,7 +388,7 @@ class ContinuousTurtleObsGym(gym.Env):
 		super(ContinuousTurtleObsGym,self).__init__()		
 		metadata = {'render.modes': ['console']}
 		print("Initialising Turtlebot 3 Continuous Gym Obstacle Environment...")
-		self.action_space = spaces.Box(np.array([-0.22, -2.84]), np.array([0.22, 2.84]), dtype = np.float16) # max rotational velocity of burger is 2.84 rad/s
+		self.action_space = spaces.Box(np.array([0., -2.84]), np.array([0.22, 2.84]), dtype = np.float16) # max rotational velocity of burger is 2.84 rad/s
 		low = np.concatenate((np.array([-1.,-1.,-4.]), np.zeros(36)))
 		high = np.concatenate((np.array([1.,1.,4.]), np.ones(36)*4.))
 		self.observation_space = spaces.Box(low, high, dtype=np.float16)
@@ -413,6 +414,9 @@ class ContinuousTurtleObsGym(gym.Env):
 		self.unpause = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
 		self.reset_simulation_proxy = rospy.ServiceProxy('/gazebo/reset_simulation', Empty)
 
+		self.stop_bot()
+		self.reset_pose()
+
 	def pose_callback(self, pose_data) :
 		# ROS Callback function for the /odom topic
 		orient = pose_data.pose.pose.orientation
@@ -425,7 +429,7 @@ class ContinuousTurtleObsGym(gym.Env):
 		# ROS Callback function for the /scan topic
 		scan = np.array(scan_data.ranges)
 		scan = np.nan_to_num(scan, copy=False, nan=0.0, posinf=5., neginf=0.)
-		self.sector_scan = np.mean(scan.reshape(-1, 10), axis=1) # Sectorizes the lidar data to 36 sectors of 10 degrees each
+		self.sector_scan = np.min(scan.reshape(-1, 10), axis=1) # Sectorizes the lidar data to 36 sectors of 10 degrees each
 
 	def cam_callback(self, cam_data) : 
 		# ROS Callback function for the /camera/depth/image_raw topic
@@ -454,18 +458,19 @@ class ContinuousTurtleObsGym(gym.Env):
 		return roll_x, pitch_y, yaw_z # in radians
 
 	def reset(self):
-		rospy.wait_for_service('/gazebo/reset_simulation')
-		try:
-			self.pause()
-			self.reset_simulation_proxy()
-			self.unpause()
-			# rospy.sleep(1)
-			print('Simulation reset')
-		except rospy.ServiceException as exc:
-			print("Reset Service did not process request: " + str(exc))
+		self.stop_bot()
+		# rospy.wait_for_service('/gazebo/reset_simulation')
+		# try:
+		# 	self.pause()
+		# 	self.reset_simulation_proxy()
+		# 	self.unpause()
+		# 	# rospy.sleep(1)
+		# 	print('Simulation reset')
+		# except rospy.ServiceException as exc:
+		# 	print("Reset Service did not process request: " + str(exc))
 
-		x = random.choice([-2., -1.5, -0.5, 0.5, 1.5, 2.])
-		y = random.choice([-2., -1.5, -0.5, 0.5, 1.5, 2.])
+		x = 10*random.uniform(-1, 1)
+		y = 10*random.uniform(-1, 1)
 		self.target[0], self.target[1] = [x, y]
 
 		print("Reset target to : [{:.2f}, {:.2f}]".format(self.target[0], self.target[1]))
@@ -494,27 +499,44 @@ class ContinuousTurtleObsGym(gym.Env):
 
 		headingError = abs(alpha)
 		alongTrackError = abs(self.pose[0] - self.target[0]) + abs(self.pose[1] - self.target[1])
-		return -1*(abs(crossTrackError)**2 + alongTrackError + 3*headingError/1.57)/6
+		# return -1*(abs(crossTrackError)**2 + alongTrackError + 3*headingError/1.57)/6
+		return -1*(headingError + alongTrackError)
+
+	def reset_pose(self):
+		rospy.wait_for_service('/gazebo/reset_simulation')
+		try:
+			self.pause()
+			self.reset_simulation_proxy()
+			self.unpause()
+			# rospy.sleep(1)
+			print('Simulation reset')
+		except rospy.ServiceException as exc:
+			print("Reset Service did not process request: " + str(exc))
 
 	def check_goal(self):
 		done = False
 
-		if abs(self.pose[0] < GRID) or abs(self.pose[1] < GRID):
+		if (abs(self.pose[0]) < GRID) or (abs(self.pose[1]) < GRID):
 			if (abs(self.pose[0] - self.target[0]) < THRESHOLD and abs(self.pose[1] - self.target[1]) < THRESHOLD) :
 				done = True
-				reward = 10
+				reward = 100
 				print("Goal Reached")
 				self.stop_bot()
+				self.reset_pose()
 			else :
 				reward = self.get_reward()
-				if np.min(self.sector_scan) < 0.2 :
-					# print("Collision Detected")
-					reward -= 1
+				if np.min(self.sector_scan) < OBS_THRESH :
+					print("Collision Detected")
+					reward = -100
+					self.stop_bot()
+					self.reset_pose()
+					done = True
 		else:
 			done = True
-			reward = -1
+			reward = -100
 			print("Outside range")
 			self.stop_bot()
+			self.reset_pose()
 
 		if self.ep_steps > MAX_EP_LEN :
 			print("Reached max episode length")
@@ -545,7 +567,7 @@ class ContinuousTurtleObsGym(gym.Env):
 		return np.concatenate((np.array(obs), self.sector_scan)), reward, done, info  
 
 	def stop_bot(self):
-		# print("Stopping Bot...")
+		print("Stopping Bot...")
 		msg = Twist()
 		msg.linear.x = 0.
 		msg.linear.y = 0.
@@ -604,6 +626,9 @@ class DiscreteTurtleObsGym(gym.Env):
 		self.unpause = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
 		self.reset_simulation_proxy = rospy.ServiceProxy('/gazebo/reset_simulation', Empty)
 
+		self.stop_bot()
+		self.reset_pose()
+
 	def pose_callback(self, pose_data) :
 		# ROS Callback function for the /odom topic
 		orient = pose_data.pose.pose.orientation
@@ -616,7 +641,7 @@ class DiscreteTurtleObsGym(gym.Env):
 		# ROS Callback function for the /scan topic
 		scan = np.array(scan_data.ranges)
 		scan = np.nan_to_num(scan, copy=False, nan=0.0, posinf=5., neginf=0.)
-		self.sector_scan = np.mean(scan.reshape(-1, 10), axis=1) # Sectorizes the lidar data to 36 sectors of 10 degrees each
+		self.sector_scan = np.min(scan.reshape(-1, 10), axis=1) # Sectorizes the lidar data to 36 sectors of 10 degrees each
 
 	def cam_callback(self, cam_data) : 
 		# ROS Callback function for the /camera/depth/image_raw topic
@@ -645,20 +670,21 @@ class DiscreteTurtleObsGym(gym.Env):
 		return roll_x, pitch_y, yaw_z # in radians
 
 	def reset(self):
-		rospy.wait_for_service('/gazebo/reset_simulation')
-		try:
-			self.pause()
-			self.reset_simulation_proxy()
-			self.unpause()
-			# rospy.sleep(1)
-			print('Simulation reset')
-		except rospy.ServiceException as exc:
-			print("Reset Service did not process request: " + str(exc))
+		# self.stop_bot()
+		# rospy.wait_for_service('/gazebo/reset_simulation')
+		# try:
+		# 	self.pause()
+		# 	self.reset_simulation_proxy()
+		# 	self.unpause()
+		# 	# rospy.sleep(1)
+		# 	print('Simulation reset')
+		# except rospy.ServiceException as exc:
+		# 	print("Reset Service did not process request: " + str(exc))
+		self.reset_pose()
 
-		x = random.choice([-0.5, 0., 0.5])
-		y = random.choice([-0.5, 0., 0.5])
-		self.target[0], self.target[1] = [0.5, 0.0] #[x, y]
-
+		y = random.uniform(-1, 1)
+		# x = random.choice([-1, 1])
+		self.target[0], self.target[1] = [1., 0.] # [1. , y] #random.choice([x, y], [y, x]) # 
 
 		print("Reset target to : [{:.2f}, {:.2f}]".format(self.target[0], self.target[1]))
 		head_to_target = self.get_heading(self.pose, self.target)
@@ -685,29 +711,48 @@ class DiscreteTurtleObsGym(gym.Env):
 
 		headingError = abs(alpha)
 		alongTrackError = abs(self.pose[0] - self.target[0]) + abs(self.pose[1] - self.target[1])
-		return -1*(abs(crossTrackError)**2 + alongTrackError + 3*headingError/1.57)/6
+		# return -1*(alongTrackError - np.min(self.sector_scan))
+		return -1*(abs(crossTrackError)**2 + alongTrackError + 5*headingError/1.57 - np.sum(self.sector_scan)/3)/6
+
+	def reset_pose(self):
+		rospy.wait_for_service('/gazebo/reset_simulation')
+		try:
+			self.pause()
+			self.reset_simulation_proxy()
+			self.unpause()
+			# rospy.sleep(1)
+			print('Simulation reset')
+		except rospy.ServiceException as exc:
+			print("Reset Service did not process request: " + str(exc))
 
 	def check_goal(self):
 		done = False
 
-		if abs(self.pose[0] < GRID) or abs(self.pose[1] < GRID):
+		print(abs(self.pose[0]), abs(self.pose[1]), end = '\r')
+
+		if (abs(self.pose[0]) < GRID) or (abs(self.pose[1]) < GRID):
 			if (abs(self.pose[0] - self.target[0]) < THRESHOLD and abs(self.pose[1] - self.target[1]) < THRESHOLD) :
-				
-				done = True
-				reward = 10
+						
+				reward = 100
 				print("Goal Reached")
 				self.stop_bot()	
+				self.reset_pose()
+				done = True
 			else :
-				print(abs(self.pose[0] - self.target[0]), abs(self.pose[1] - self.target[1]), end = '\r' )
+				
 				reward = self.get_reward()
-				if np.min(self.sector_scan) < 0.2 :
-					# print("Collision Detected")
-					reward -= 0.5
+				if np.min(self.sector_scan) < OBS_THRESH :
+					print("Collision Detected")
+					reward = -100
+					self.stop_bot()
+					self.reset_pose()
+					done = True
 		else:
 			done = True
-			reward = -1
+			reward = -10
 			print("Outside range")
 			self.stop_bot()
+			self.reset_pose()
 
 		if self.ep_steps > MAX_EP_LEN :
 			print("Reached max episode length")
@@ -740,7 +785,7 @@ class DiscreteTurtleObsGym(gym.Env):
 		return np.concatenate((np.array(obs), self.sector_scan)), reward, done, info  
 
 	def stop_bot(self):
-		# print("Stopping Bot...")
+		print("Stopping Bot...")
 		msg = Twist()
 		msg.linear.x = 0.
 		msg.linear.y = 0.
@@ -749,7 +794,7 @@ class DiscreteTurtleObsGym(gym.Env):
 		msg.angular.y = 0.
 		msg.angular.z = 0.
 		self.pub.publish(msg)
-		rospy.sleep(1)
+		rospy.sleep(0.5)
 
 	def close(self):
 		pass
