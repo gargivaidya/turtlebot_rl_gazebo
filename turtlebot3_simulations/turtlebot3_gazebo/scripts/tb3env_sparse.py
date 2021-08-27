@@ -24,7 +24,7 @@ THETA0 = np.pi/4
 MAX_EP_LEN = 200
 OBS_THRESH = 0.15
 GOAL_RWD = 10
-
+GOAL_OBS_RWD = 100
 
 
 class DiscreteTurtleGym(gym.Env):
@@ -221,7 +221,7 @@ class DiscreteTurtleGym(gym.Env):
 		pass
 
 class DiscreteTurtleObsGym(gym.Env):
-	def __init__(self, n_actions = 4):
+	def __init__(self, n_actions = 15,is_sparse = False):
 		super(DiscreteTurtleObsGym,self).__init__()		
 		metadata = {'render.modes': ['console']}
 		print("Initialising Turtlebot 3 Discrete Obs Gym Environment...")
@@ -245,6 +245,7 @@ class DiscreteTurtleObsGym(gym.Env):
 		self.observation_space = spaces.Box(low, high, dtype=np.float16)
 		self.target = [0., 0., 0.]
 		self.ep_steps = 0
+		self.is_sparse = is_sparse
 
 		self.pose = np.zeros(3) # pose_callback
 		self.sector_scan = np.zeros(36) # scan_callback
@@ -372,7 +373,7 @@ class DiscreteTurtleObsGym(gym.Env):
 		if (abs(self.pose[0]) < GRID) or (abs(self.pose[1]) < GRID):
 			if (abs(self.pose[0] - self.target[0]) < THRESHOLD and abs(self.pose[1] - self.target[1]) < THRESHOLD) :
 						
-				reward = 100
+				reward = GOAL_OBS_RWD
 				print("Goal Reached")
 				self.stop_bot()	
 				self.reset_pose()
@@ -417,11 +418,17 @@ class DiscreteTurtleObsGym(gym.Env):
 
 		head_to_target = self.get_heading(self.pose, self.target)
 
-		done, reward = self.check_goal()
+		done, reward_dense = self.check_goal()
+
+		if self.is_sparse:
+			if done and (reward_dense == GOAL_OBS_RWD):
+				reward = 1
+			else:
+				reward = 0
 
 		obs = [(self.target[0] - self.pose[0])/GRID, (self.target[1] - self.pose[1])/GRID, head_to_target - self.pose[2]]
 		obs = [round(x, 2) for x in obs]
-		return np.concatenate((np.array(obs), self.sector_scan)), reward, done, info  
+		return np.concatenate((np.array(obs), self.sector_scan)), reward, done, reward_dense  
 
 	def stop_bot(self):
 		print("Stopping Bot...")
