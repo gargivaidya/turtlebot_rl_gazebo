@@ -1,0 +1,5 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.ipynb_checkpoints
+turtlebot3_simulations/turtlebot3_gazebo/scripts/algorithm/Results
