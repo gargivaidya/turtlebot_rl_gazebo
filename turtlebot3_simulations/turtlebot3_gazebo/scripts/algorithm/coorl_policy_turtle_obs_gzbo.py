@@ -31,7 +31,7 @@ from core.ppo import ppo_step
 from core.trpo import trpo_step
 from core.common import estimate_advantages
 from core.agent_coorl import Agent
-from tb3env_sparse import DiscreteTurtleGym
+from tb3env_sparse import DiscreteTurtleGym,DiscreteTurtleObsGym
 
 
 parser = argparse.ArgumentParser(description='PyTorch COORL example')
@@ -121,6 +121,9 @@ print('NN Size',nn_size)
 
 if args.exp_traj == 1:
 	args.model_path = 'learned_models/DiscreteDubinGymDense_PDM.p'
+
+if args.exp_traj == 2:
+	args.model_path = 'learned_models/DiscreteDubinGymDense_Best.p'
 
 
 
@@ -277,6 +280,7 @@ def train(env):
 			trpo_step(policy_net, value_net, states, actions, returns, advantages, args.max_kl, args.damping, args.l2_reg)
 
 		if kl > 5.1e-7:
+			print('here')
 			trpo_step(policy_net, value_net_exp, states, actions, returns_exp, advantages_exp, kl, args.damping, args.l2_reg,fixed_log_probs = fixed_log_probs)
 
 
@@ -346,8 +350,8 @@ def train(env):
 if __name__ == '__main__':
 	try:
 		rospy.init_node('train', anonymous=True)		
-		env = DiscreteTurtleObsGym()
-		# env = DiscreteTurtleObsGym(is_sparse = True)
+		# env = DiscreteTurtleObsGym()
+		env = DiscreteTurtleObsGym(is_sparse = True)
 		args.observe = 3
 		train(env)
 		rospy.spin()

@@ -112,7 +112,10 @@ args = parser.parse_args()
 
 
 
-
+args.exp_traj = 1
+args.decay_constant = 0.01
+args.save_model = True
+args.save_reward = 0.9
 
 
 nn_size = tuple(args.nn_param)
@@ -327,11 +330,12 @@ def train(env):
 			writer.add_scalar('rewards/train_R_avg',log['avg_reward'],i_iter+1)
 			
 
-			if (log['true_reward'] > args.save_reward and args.save_model):
+			if (log['avg_reward'] > args.save_reward and args.save_model):
 				log_name = str(log['true_reward']) 
+				log_name_2 = str(log['avg_reward'])
 				to_device(torch.device('cpu'), policy_net, value_net)
 				pickle.dump((policy_net, value_net),
-							open('learned_models/{}_{}_coorl.p'.format(args.env_name,log_name), 'wb'))
+							open('learned_models/{}_{}_{}_coorl.p'.format(args.env_name,log_name,log_name_2), 'wb'))
 				to_device(device, policy_net, value_net)
 				print("Done!!!")
 

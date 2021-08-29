@@ -19,12 +19,13 @@ MAX_STEER = 2.84
 MAX_SPEED = 0.22
 MIN_SPEED = 0.
 THRESHOLD = 0.2
-GRID = 4.
+GRID = 3.
 THETA0 = np.pi/4
-MAX_EP_LEN = 200
+MAX_EP_LEN = 500
 OBS_THRESH = 0.15
 GOAL_RWD = 10
 GOAL_OBS_RWD = 100
+COLLISION_RWD = -100
 
 
 class DiscreteTurtleGym(gym.Env):
@@ -200,6 +201,8 @@ class DiscreteTurtleGym(gym.Env):
 				reward = 1
 			else:
 				reward = 0
+		else:
+			reward = reward_dense
 
 		obs = [(self.target[0] - self.pose[0])/GRID, (self.target[1] - self.pose[1])/GRID, head_to_target - self.pose[2]]
 		obs = [round(x, 2) for x in obs]
@@ -221,6 +224,7 @@ class DiscreteTurtleGym(gym.Env):
 		pass
 
 class DiscreteTurtleObsGym(gym.Env):
+
 	def __init__(self, n_actions = 15,is_sparse = False):
 		super(DiscreteTurtleObsGym,self).__init__()		
 		metadata = {'render.modes': ['console']}
@@ -311,20 +315,20 @@ class DiscreteTurtleObsGym(gym.Env):
 
 	def reset(self):
 		# self.stop_bot()
-		# rospy.wait_for_service('/gazebo/reset_simulation')
-		# try:
-		# 	self.pause()
-		# 	self.reset_simulation_proxy()
-		# 	self.unpause()
-		# 	# rospy.sleep(1)
-		# 	print('Simulation reset')
-		# except rospy.ServiceException as exc:
-		# 	print("Reset Service did not process request: " + str(exc))
+		rospy.wait_for_service('/gazebo/reset_simulation')
+		try:
+			self.pause()
+			self.reset_simulation_proxy()
+			self.unpause()
+			# rospy.sleep(1)
+			print('Simulation reset')
+		except rospy.ServiceException as exc:
+			print("Reset Service did not process request: " + str(exc))
 		self.reset_pose()
 
 		y = random.uniform(-1, 1)
-		# x = random.choice([-1, 1])
-		self.target[0], self.target[1] = [1., 0.] # [1. , y] #random.choice([x, y], [y, x]) # 
+		x = random.choice([-1, 1])
+		self.target[0], self.target[1] = random.choice([[x, y], [y, x]]) #[1., 0.] # [1. , y]
 
 		print("Reset target to : [{:.2f}, {:.2f}]".format(self.target[0], self.target[1]))
 		head_to_target = self.get_heading(self.pose, self.target)
@@ -368,31 +372,32 @@ class DiscreteTurtleObsGym(gym.Env):
 	def check_goal(self):
 		done = False
 
-		print(abs(self.pose[0]), abs(self.pose[1]), end = '\r')
+		# print(abs(self.pose[0]), abs(self.pose[1]), end = '\r')
 
 		if (abs(self.pose[0]) < GRID) or (abs(self.pose[1]) < GRID):
+
 			if (abs(self.pose[0] - self.target[0]) < THRESHOLD and abs(self.pose[1] - self.target[1]) < THRESHOLD) :
 						
 				reward = GOAL_OBS_RWD
 				print("Goal Reached")
 				self.stop_bot()	
-				self.reset_pose()
+				# self.reset_pose()
 				done = True
 			else :
 				
 				reward = self.get_reward()
 				if np.min(self.sector_scan) < OBS_THRESH :
 					print("Collision Detected")
-					reward = -100
+					reward = COLLISION_RWD
 					self.stop_bot()
-					self.reset_pose()
+					# self.reset_pose()
 					done = True
 		else:
 			done = True
 			reward = -10
 			print("Outside range")
 			self.stop_bot()
-			self.reset_pose()
+			# self.reset_pose()
 
 		if self.ep_steps > MAX_EP_LEN :
 			print("Reached max episode length")
@@ -423,8 +428,12 @@ class DiscreteTurtleObsGym(gym.Env):
 		if self.is_sparse:
 			if done and (reward_dense == GOAL_OBS_RWD):
 				reward = 1
+			elif(done and (reward_dense == COLLISION_RWD)):
+				reward = -1
 			else:
 				reward = 0
+		else:
+			reward = reward_dense
 
 		obs = [(self.target[0] - self.pose[0])/GRID, (self.target[1] - self.pose[1])/GRID, head_to_target - self.pose[2]]
 		obs = [round(x, 2) for x in obs]
