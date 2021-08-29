@@ -280,7 +280,6 @@ def train(env):
 			trpo_step(policy_net, value_net, states, actions, returns, advantages, args.max_kl, args.damping, args.l2_reg)
 
 		if kl > 5.1e-7:
-			print('here')
 			trpo_step(policy_net, value_net_exp, states, actions, returns_exp, advantages_exp, kl, args.damping, args.l2_reg,fixed_log_probs = fixed_log_probs)
 
 
