@@ -28,7 +28,7 @@ args = parser.parse_args()
 
 dtype = torch.float64
 torch.set_default_dtype(dtype)
-args.model_path = 'learned_models/gzbo_12.p'
+args.model_path = 'learned_models/DiscreteDubinGymDense_Best.p'
 
 
 def eval_pol(env):
@@ -62,8 +62,7 @@ def eval_pol(env):
                 
                 action = int(action) if is_disc_action else action.astype(np.float64)
                 next_state, reward, done, _ = env.step(action)
-                print(next_state)
-                break
+                
                 reward_episode += reward
                 num_steps += 1
 
