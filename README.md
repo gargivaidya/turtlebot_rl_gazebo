@@ -4,12 +4,12 @@
 - [ROBOTIS e-Manual for TurtleBot3](http://turtlebot3.robotis.com/)
 - To install the Realsense Plugin from source follow steps from https://github.com/intel/gazebo-realsense, or as given below
 
-# Reinforcement Learning with Stable Baselines
+# Reinforcement Learning with Stable Baselines3
 ```
 mkdir -p catkin_ws/src
 cd catkin_ws/src
-git clone 
-git clone 
+git clone https://github.com/gargivaidya/turtlebot_rl_gazebo.git
+git clone https://github.com/ROBOTIS-GIT/turtlebot3.git
 cd ..
 catkin_make
 . devel/setup.bash
@@ -20,7 +20,7 @@ catkin_make
 python3 -m venv gymenv
 source gymenv/bin/activate
 pip3 install --upgrade pip
-pip3 install pyyaml rospkg numpy tensorboard 
+pip3 install pyyaml rospkg numpy gym matplotlib tensorboard scikit-build cmake stable-baselines3 scipy 
 pip3 install <compatible version of torch https://pytorch.org/>
 ```
 ## Start training RL model
@@ -31,6 +31,15 @@ source gymenv/bin/activate
 rosrun turtlebot3_gazebo sbtraining.py
 ```
 # Reinforcement Learning with Custom RL Algorithm
+```
+mkdir -p catkin_ws/src
+cd catkin_ws/src
+git clone https://github.com/gargivaidya/turtlebot_rl_gazebo.git
+git clone https://github.com/ROBOTIS-GIT/turtlebot3.git
+cd ..
+catkin_make
+. devel/setup.bash
+```
 
 #### Dependencies
 ```
