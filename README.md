@@ -5,6 +5,15 @@
 - To install the Realsense Plugin from source follow steps from https://github.com/intel/gazebo-realsense, or as given below
 
 # Reinforcement Learning with Stable Baselines
+```
+mkdir -p catkin_ws/src
+cd catkin_ws/src
+git clone 
+git clone 
+cd ..
+catkin_make
+. devel/setup.bash
+```
 
 ## Setup Virtual Environment for RL
 ```
@@ -12,7 +21,7 @@ python3 -m venv gymenv
 source gymenv/bin/activate
 pip3 install --upgrade pip
 pip3 install pyyaml rospkg numpy tensorboard 
-pip3 install <compatible pytorch version>
+pip3 install <compatible version of torch https://pytorch.org/>
 ```
 ## Start training RL model
 ```
@@ -35,7 +44,7 @@ turtlebot3_descriptions
 python3 -m venv gymenv
 source gymenv/bin/activate
 pip3 install --upgrade pip
-pip3 install pyyaml rospkg numpy gym matplotlib tensorboard scikit-build cmake stable-baselines
+pip3 install pyyaml rospkg numpy gym matplotlib tensorboard scikit-build cmake stable-baselines3 scipy
 pip3 install <compatible version of torch https://pytorch.org/>
 ```
 ## Start training RL model
