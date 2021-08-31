@@ -115,21 +115,21 @@ args = parser.parse_args()
 args.exp_traj = 1
 args.decay_constant = 0.01
 args.save_model = True
-args.save_reward = 0.9
+args.save_reward = 0.95
 
-
+torch.cuda.empty_cache()
 nn_size = tuple(args.nn_param)
 print('NN Size',nn_size)
 
 
 if args.exp_traj == 1:
-	args.model_path = 'learned_models/DiscreteDubinGymDense_PDM.p'
+	args.model_path = 'learned_models/DiscreteDubinGymDense_trpo.p'
 
 
 
 
 def train(env):
-	args.env_name = 'GzboDiscTurtle'
+	args.env_name = 'GzboDiscTurtleLineAct'
 	if args.final is False:
 		writer = SummaryWriter('Results/runs/Env_{}/COORL/COORL_{}'
 			.format(args.env_name,datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")))
@@ -328,14 +328,14 @@ def train(env):
 					.format(i_iter, log['sample_time'], t1-t0,log['avg_reward'],log['true_reward'],kl))
 
 			writer.add_scalar('rewards/train_R_avg',log['avg_reward'],i_iter+1)
-			
+			writer.add_scalar('rewards/true_R_avg',log['true_reward'],i_iter+1)
 
 			if (log['avg_reward'] > args.save_reward and args.save_model):
 				log_name = str(log['true_reward']) 
 				log_name_2 = str(log['avg_reward'])
 				to_device(torch.device('cpu'), policy_net, value_net)
 				pickle.dump((policy_net, value_net),
-							open('learned_models/{}_{}_{}_coorl.p'.format(args.env_name,log_name,log_name_2), 'wb'))
+							open('learned_models/{}_{}_{}_coorl.p'.format(args.env_name,log_name,i_iter), 'wb'))
 				to_device(device, policy_net, value_net)
 				print("Done!!!")
 

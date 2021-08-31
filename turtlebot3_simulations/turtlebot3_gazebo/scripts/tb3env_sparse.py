@@ -41,9 +41,9 @@ class DiscreteTurtleGym(gym.Env):
 			}
 		else :
 			self.actSpace = {
-				0: [0., -2.5], 1: [0., -1.25], 2: [0., 0.], 3: [0., 1.25], 4: [0., 2.5],
-				5: [0.1, -2.5], 6: [0.1, -1.25], 7: [0.1, 0.], 8: [0.1, 1.25], 9: [0.1, 2.5],
-				10: [0.2, -2.5], 11: [0.2, -1.25], 12: [0.2, 0.], 13: [0.2, 1.25], 14: [0.2, 2.5]
+				0: [0., -0.5], 1: [0., -0.25], 2: [0., 0.], 3: [0., 0.25], 4: [0., 0.5],
+				5: [0.1, -0.5], 6: [0.1, -0.25], 7: [0.1, 0.], 8: [0.1, 0.25], 9: [0.1, 0.5],
+				10: [0.2, -0.5], 11: [0.2, -0.25], 12: [0.2, 0.], 13: [0.2, 0.25], 14: [0.2, 0.5]
 			}
 
 		low = np.array([-1.,-1.,-4.])
@@ -124,12 +124,11 @@ class DiscreteTurtleGym(gym.Env):
 
 		x = random.uniform(-1., 1.)
 		y = random.choice([-1., 1.])
-		self.target[0], self.target[1] = random.choice([[x, y], [y, x]])
+		self.target[0], self.target[1] = [1.,x]#random.choice([[x, y], [y, x]])
 
 		print("Reset target to : [{:.2f}, {:.2f}]".format(self.target[0], self.target[1]))
 		head_to_target = self.get_heading(self.pose, self.target)
-		yaw = random.uniform(head_to_target - THETA0, head_to_target + THETA0)
-
+ 
 		obs = [(self.target[0] - self.pose[0])/GRID, (self.target[1] - self.pose[1])/GRID, head_to_target - self.pose[2]]
 		obs = [round(x, 2) for x in obs]
 		self.ep_steps = 0
@@ -239,9 +238,9 @@ class DiscreteTurtleObsGym(gym.Env):
 		else :
 			self.action_space = spaces.Discrete(15)
 			self.actSpace = {
-				0: [0., -2.5], 1: [0., -1.25], 2: [0., 0.], 3: [0., 1.25], 4: [0., 2.5],
-				5: [0.1, -2.5], 6: [0.1, -1.25], 7: [0.1, 0.], 8: [0.1, 1.25], 9: [0.1, 2.5],
-				10: [0.2, -2.5], 11: [0.2, -1.25], 12: [0.2, 0.], 13: [0.2, 1.25], 14: [0.2, 2.5]
+				0: [0., -0.5], 1: [0., -0.25], 2: [0., 0.], 3: [0., 0.25], 4: [0., 0.5],
+				5: [0.1, -0.5], 6: [0.1, -0.25], 7: [0.1, 0.], 8: [0.1, 0.25], 9: [0.1, 0.5],
+				10: [0.2, -0.5], 11: [0.2, -0.25], 12: [0.2, 0.], 13: [0.2, 0.25], 14: [0.2, 0.5]
 			}
 
 		low = np.concatenate((np.array([-1.,-1.,-4.]), np.zeros(36)))
@@ -328,11 +327,10 @@ class DiscreteTurtleObsGym(gym.Env):
 
 		y = random.uniform(-1, 1)
 		x = random.choice([-1, 1])
-		self.target[0], self.target[1] = random.choice([[x, y], [y, x]]) #[1., 0.] # [1. , y]
+		self.target[0], self.target[1] = [1.,x]#random.choice([[x, y], [y, x]]) #[1., 0.] # [1. , y]
 
 		print("Reset target to : [{:.2f}, {:.2f}]".format(self.target[0], self.target[1]))
 		head_to_target = self.get_heading(self.pose, self.target)
-		yaw = random.uniform(head_to_target - THETA0, head_to_target + THETA0)
 
 		obs = [(self.target[0] - self.pose[0])/GRID, (self.target[1] - self.pose[1])/GRID, head_to_target - self.pose[2]]
 		obs = [round(x, 2) for x in obs]
