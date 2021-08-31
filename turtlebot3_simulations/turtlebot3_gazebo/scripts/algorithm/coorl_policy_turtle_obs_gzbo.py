@@ -114,7 +114,7 @@ args = parser.parse_args()
 
 
 
-
+torch.cuda.empty_cache()
 nn_size = tuple(args.nn_param)
 print('NN Size',nn_size)
 

@@ -1,12 +1,34 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import numpy as np
 import argparse
 import gym
 import os
 import sys
 import pickle
+import time
+import datetime
+from collections import deque
+from torch import nn
+from torch.utils.tensorboard import SummaryWriter
+import itertools
+import rospy
+from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Twist
+from sensor_msgs.msg import CompressedImage, Image
+
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from environment.custom_dubin import ContinuousDubinGym,DiscreteDubinGym
-from itertools import count
 from utils import *
+from models.mlp_policy import Policy
+from models.mlp_critic import Value
+from models.mlp_policy_disc_coorl import DiscretePolicy
+from models.mlp_discriminator import Discriminator
+from core.ppo import ppo_step
+from core.trpo import trpo_step
+from core.common import estimate_advantages
+from core.agent_coorl import Agent
+from tb3env_sparse import DiscreteTurtleGym
 
 
 parser = argparse.ArgumentParser(description='Save expert trajectory')
@@ -24,73 +46,68 @@ args = parser.parse_args()
 
 dtype = torch.float64
 torch.set_default_dtype(dtype)
-if args.disc:
-    env = DiscreteDubinGym()
-    args.env_name = 'DiscreteDubinGym'
-    args.model_path = 'learned_models/DiscreteDubinGymDense_trpo.p'
-else:
-    env = ContinuousDubinGym()
-    args.env_name = 'ContinuousDubinGym'
-    args.model_path = 'learned_models/ContinuousDubinGym_trpo.p'
+
+def eval_pol(env):
+    args.model_path = 'learned_models/gzbo_line_small_4.p'
+    # args.model_path = 'learned_models/DiscreteDubinGymDense_trpo.p'
+    env.seed(args.seed)
+    torch.manual_seed(args.seed)
+    is_disc_action = len(env.action_space.shape) == 0
+    state_dim = env.observation_space.shape[0]
+    policy_net, _ = pickle.load(open(args.model_path, "rb"))
 
 
+    def main_loop():
 
+        num_steps = 0
+        avg_rwd = []
 
+        for i_episode in range(10000):
 
+            state = env.reset()
+            reward_episode = 0
+            done = False
+            while (not done):            
+                state_var = tensor(state).unsqueeze(0).to(dtype)
+                # choose mean action
+                if is_disc_action:
+                    # action = policy_net.select_action(state_var)[0].cpu().numpy()
+                    action_prob = policy_net(state_var)[0].detach().numpy()
+                    action = np.argmax(action_prob)
+                else:
+                    action = policy_net(state_var)[0][0].detach().numpy()
+                    action = [max(0,min(0.22,action[0])),max(-2.84,min(2.84,action[1]))]
+                
+                action = int(action) if is_disc_action else action.astype(np.float64)
+                # print(action)
+                next_state, reward, done, _ = env.step(action)
+                reward_episode += reward
+                num_steps += 1            
 
-env.seed(args.seed)
-torch.manual_seed(args.seed)
-is_disc_action = len(env.action_space.shape) == 0
-state_dim = env.observation_space.shape[0]
+                if args.render:
+                    env.render()
+                if done:
+                    break
 
-policy_net, _ = pickle.load(open(args.model_path, "rb"))
-expert_traj = []
+                state = next_state
 
+            print('Episode {}\t reward: {:.2f}'.format(i_episode, reward_episode))
+            avg_rwd.append(reward_episode)
 
-def main_loop():
-
-    num_steps = 0
-    avg_rwd = []
-
-    for i_episode in count():
-
-        state = env.reset()
-        reward_episode = 0
-        done = False
-        while (not done):            
-            state_var = tensor(state).unsqueeze(0).to(dtype)
-            # choose mean action
-            if is_disc_action:
-                # action = policy_net.select_action(state_var)[0].cpu().numpy()
-                action_prob = policy_net(state_var)[0].detach().numpy()
-                action = np.argmax(action_prob)
-            else:
-                action = policy_net(state_var)[0][0].detach().numpy()
-                action = [max(0,min(0.22,action[0])),max(-2.84,min(2.84,action[1]))]
-            
-            action = int(action) if is_disc_action else action.astype(np.float64)
-            next_state, reward, done, _ = env.step(action)
-            reward_episode += reward
-            num_steps += 1
-            expert_traj.append(np.hstack([state, action]))
-
-            if args.render:
-                env.render()
-            if done:
+            if num_steps >= args.max_expert_state_num:
+                
+                print('Avg_rwd {:.2f}\t std_rwd: {:.2f}'.format(np.mean(avg_rwd), np.std(avg_rwd)))
+                print('Max_rwd {:.2f}\t Min_rwd: {:.2f}'.format(np.max(avg_rwd), np.min(avg_rwd)))
                 break
 
-            state = next_state
-
-        print('Episode {}\t reward: {:.2f}'.format(i_episode, reward_episode))
-        avg_rwd.append(reward_episode)
-
-        if num_steps >= args.max_expert_state_num:
-            print(np.shape(expert_traj))
-            print('Avg_rwd {:.2f}\t std_rwd: {:.2f}'.format(np.mean(avg_rwd), np.std(avg_rwd)))
-            print('Max_rwd {:.2f}\t Min_rwd: {:.2f}'.format(np.max(avg_rwd), np.min(avg_rwd)))
-            break
+    main_loop()
 
 
-main_loop()
-expert_traj = np.stack(expert_traj)
-pickle.dump((expert_traj), open('learned_models/{}_exp_traj.p'.format(args.env_name), 'wb'))
+if __name__ == '__main__':
+    try:
+        rospy.init_node('train', anonymous=True)        
+        env = DiscreteTurtleGym(is_sparse = False)
+        eval_pol(env)
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
