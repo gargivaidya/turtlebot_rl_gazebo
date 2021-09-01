@@ -15,16 +15,24 @@ from sensor_msgs.msg import CompressedImage, Image, LaserScan
 import numpy as np
 from std_srvs.srv import Empty
 
+# Constants
 MAX_STEER = 2.84
 MAX_SPEED = 0.22
 MIN_SPEED = 0.
-THRESHOLD = 0.2
+THRESHOLD = 0.1
 GRID = 5.
 THETA0 = np.pi/4
-MAX_EP_LEN = 800
+MAX_EP_LEN = 400
 OBS_THRESH = 0.15
 
 class ContinuousTurtleGym(gym.Env):
+	"""
+	Continuous Action Space Gym Environment
+	State - relative x, y, theta
+	Action - linear vel range {-0.22 , 0.22}, 
+			 angular vel range {-2.84, 2.84}
+	Reward - 
+	"""
 	def __init__(self):
 		super(ContinuousTurtleGym,self).__init__()		
 		metadata = {'render.modes': ['console']}
@@ -198,11 +206,22 @@ class ContinuousTurtleGym(gym.Env):
 		pass
 
 class DiscreteTurtleGym(gym.Env):
+	"""
+	Discrete Action Space Gym Environment
+	State - relative x, y, theta
+	Action - 4 actions - 
+				0: [0.2, 0.], 1: [0., 1.25], 2: [-0.2, 0.], 3: [0., -1.25]
+			 15 actions - 
+			 	0: [0., -2.5], 1: [0., -1.25], 2: [0., 0.], 3: [0., 1.25], 4: [0., 2.5],
+				5: [0.1, -2.5], 6: [0.1, -1.25], 7: [0.1, 0.], 8: [0.1, 1.25], 9: [0.1, 2.5],
+				10: [0.2, -2.5], 11: [0.2, -1.25], 12: [0.2, 0.], 13: [0.2, 1.25], 14: [0.2, 2.5]
+	Reward - 
+	"""
 	def __init__(self, n_actions = 4):
 		super(DiscreteTurtleGym,self).__init__()		
 		metadata = {'render.modes': ['console']}
-		print("Initialising Turtlebot 3 Discrete4 Gym Environment...")
-		self.action_space = spaces.Discrete(4) 
+		print("Initialising Turtlebot 3 Discrete Gym Environment...")
+		self.action_space = spaces.Discrete(15) 
 		self.actSpace = collections.defaultdict(list)
 		if n_actions == 4 :			
 			self.actSpace = {
@@ -292,7 +311,7 @@ class DiscreteTurtleGym(gym.Env):
 
 		x = random.uniform(-1., 1.)
 		y = random.choice([-1., 1.])
-		self.target[0], self.target[1] = random.choice([[x, y], [y, x]])
+		self.target[0], self.target[1] = [-1., 0.4]#random.choice([[x, y], [y, x]])
 
 		print("Reset target to : [{:.2f}, {:.2f}]".format(self.target[0], self.target[1]))
 		head_to_target = self.get_heading(self.pose, self.target)
@@ -384,6 +403,13 @@ class DiscreteTurtleGym(gym.Env):
 		pass
 
 class ContinuousTurtleObsGym(gym.Env):
+	"""
+	Continuous Action Space Gym Environment w/ Obstacles
+	State - relative x, y, theta, [sectorized lidar scan]
+	Action - linear vel range {0. , 0.22}, 
+			 angular vel range {-2.84, 2.84}
+	Reward - 
+	"""
 	def __init__(self):
 		super(ContinuousTurtleObsGym,self).__init__()		
 		metadata = {'render.modes': ['console']}
@@ -582,6 +608,17 @@ class ContinuousTurtleObsGym(gym.Env):
 		pass
 
 class DiscreteTurtleObsGym(gym.Env):
+	"""
+	Discrete Action Space Gym Environment w/ Obstacles
+	State - relative x, y, theta
+	Action - 4 actions - 
+				0: [0.2, 0.], 1: [0., 1.25], 2: [-0.2, 0.], 3: [0., -1.25]
+			 15 actions - 
+			 	0: [0., -2.5], 1: [0., -1.25], 2: [0., 0.], 3: [0., 1.25], 4: [0., 2.5],
+				5: [0.1, -2.5], 6: [0.1, -1.25], 7: [0.1, 0.], 8: [0.1, 1.25], 9: [0.1, 2.5],
+				10: [0.2, -2.5], 11: [0.2, -1.25], 12: [0.2, 0.], 13: [0.2, 1.25], 14: [0.2, 2.5]
+	Reward - 
+	"""
 	def __init__(self, n_actions = 4):
 		super(DiscreteTurtleObsGym,self).__init__()		
 		metadata = {'render.modes': ['console']}
@@ -680,11 +717,11 @@ class DiscreteTurtleObsGym(gym.Env):
 		# 	print('Simulation reset')
 		# except rospy.ServiceException as exc:
 		# 	print("Reset Service did not process request: " + str(exc))
-		self.reset_pose()
+		# self.reset_pose()
 
 		y = random.uniform(-1, 1)
-		# x = random.choice([-1, 1])
-		self.target[0], self.target[1] = [1., 0.] # [1. , y] #random.choice([x, y], [y, x]) # 
+		x = random.choice([-1, 1])
+		self.target[0], self.target[1] = random.choice([[x, y], [y, x]]) # 
 
 		print("Reset target to : [{:.2f}, {:.2f}]".format(self.target[0], self.target[1]))
 		head_to_target = self.get_heading(self.pose, self.target)
@@ -711,8 +748,8 @@ class DiscreteTurtleObsGym(gym.Env):
 
 		headingError = abs(alpha)
 		alongTrackError = abs(self.pose[0] - self.target[0]) + abs(self.pose[1] - self.target[1])
-		# return -1*(alongTrackError - np.min(self.sector_scan))
-		return -1*(abs(crossTrackError)**2 + alongTrackError + 5*headingError/1.57 - np.sum(self.sector_scan)/3)/6
+		return -1*(alongTrackError - np.min(self.sector_scan))
+		# return -1*(abs(crossTrackError)**2 + alongTrackError + 5*headingError/1.57)/6
 
 	def reset_pose(self):
 		rospy.wait_for_service('/gazebo/reset_simulation')
@@ -743,9 +780,9 @@ class DiscreteTurtleObsGym(gym.Env):
 				reward = self.get_reward()
 				if np.min(self.sector_scan) < OBS_THRESH :
 					print("Collision Detected")
-					reward = -100
+					reward = -1
 					self.stop_bot()
-					self.reset_pose()
+					# self.reset_pose()
 					done = True
 		else:
 			done = True
