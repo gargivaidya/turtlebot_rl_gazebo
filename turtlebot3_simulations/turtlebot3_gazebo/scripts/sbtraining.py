@@ -51,7 +51,7 @@ args = parser.parse_args()
 def train(env) :
 	model = PPO("MlpPolicy", env, verbose = 0, tensorboard_log="./ppo_turtle/")
 	model.learn(total_timesteps = 300000)
-	model.save("./sbmodels/ppo_unit_distance_3box_singletarget")
+	model.save("./sbmodels/ppo_unit_box")
 
 	# model = SAC(MlpPolicy, env, learning_rate=1e-3, buffer_size=50000, 
 	# 	learning_starts=100, train_freq=1, batch_size=64, tau=0.005, 
