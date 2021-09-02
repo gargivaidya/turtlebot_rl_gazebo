@@ -29,7 +29,7 @@ import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 parser = argparse.ArgumentParser(description='PyTorch Soft Actor-Critic Args')
-parser.add_argument('--env-name', default="DiscreteTurtleGym",
+parser.add_argument('--env-name', default="DiscreteTurtleObsGym",
 					help='Turtlebot Gazebo Gym environment (default: DiscreteTurtleGym)')
 parser.add_argument('--n-actions', type=int, default=15, metavar='N',
 					help='number of discrete actions 5 or 15 (default: 4)')
@@ -50,8 +50,8 @@ args = parser.parse_args()
 
 def train(env) :
 	model = PPO("MlpPolicy", env, verbose = 0, tensorboard_log="./ppo_turtle/")
-	model.learn(total_timesteps = 300000)
-	model.save("./sbmodels/ppo_unit_box")
+	model.learn(total_timesteps = 500000)
+	model.save("./sbmodels/ppo_1box_line")
 
 	# model = SAC(MlpPolicy, env, learning_rate=1e-3, buffer_size=50000, 
 	# 	learning_starts=100, train_freq=1, batch_size=64, tau=0.005, 
