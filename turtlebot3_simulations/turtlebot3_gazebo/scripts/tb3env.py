@@ -19,10 +19,10 @@ from std_srvs.srv import Empty
 MAX_STEER = 2.84
 MAX_SPEED = 0.22
 MIN_SPEED = 0.
-THRESHOLD = 0.1
-GRID = 5.
+THRESHOLD = 0.2
+GRID = 3.
 THETA0 = np.pi/4
-MAX_EP_LEN = 400
+MAX_EP_LEN = 500
 OBS_THRESH = 0.15
 
 class ContinuousTurtleGym(gym.Env):
@@ -721,7 +721,7 @@ class DiscreteTurtleObsGym(gym.Env):
 
 		y = random.uniform(-1, 1)
 		x = random.choice([-1, 1])
-		self.target[0], self.target[1] = random.choice([[x, y], [y, x]]) # 
+		self.target[0], self.target[1] = [1, y]#random.choice([[x, y], [y, x]]) # 
 
 		print("Reset target to : [{:.2f}, {:.2f}]".format(self.target[0], self.target[1]))
 		head_to_target = self.get_heading(self.pose, self.target)
@@ -765,34 +765,36 @@ class DiscreteTurtleObsGym(gym.Env):
 	def check_goal(self):
 		done = False
 
-		print(abs(self.pose[0]), abs(self.pose[1]), end = '\r')
+		# print(abs(self.pose[0]), abs(self.pose[1]), end = '\r')
 
 		if (abs(self.pose[0]) < GRID) or (abs(self.pose[1]) < GRID):
 			if (abs(self.pose[0] - self.target[0]) < THRESHOLD and abs(self.pose[1] - self.target[1]) < THRESHOLD) :
-						
 				reward = 100
 				print("Goal Reached")
 				self.stop_bot()	
 				self.reset_pose()
 				done = True
-			else :
-				
+			else :				
 				reward = self.get_reward()
 				if np.min(self.sector_scan) < OBS_THRESH :
 					print("Collision Detected")
-					reward = -1
+					reward = -100
 					self.stop_bot()
-					# self.reset_pose()
+					self.reset_pose()
 					done = True
 		else:
+			self.stop_bot()
+			self.reset_pose()
 			done = True
 			reward = -10
 			print("Outside range")
-			self.stop_bot()
-			self.reset_pose()
+			
+			
 
 		if self.ep_steps > MAX_EP_LEN :
 			print("Reached max episode length")
+			self.stop_bot()
+			self.reset_pose()
 			done = True
 
 		return done, reward
